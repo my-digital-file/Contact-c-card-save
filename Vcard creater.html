@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium VCard Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .input-style {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-style:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-premium:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* 3D Button Effect */
+        .download-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+
+        .download-btn:hover::after {
+            left: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400 mb-2">
+                <i class="fas fa-address-book mr-2"></i>Smart VCard Generator
+            </h1>
+            <p class="text-gray-400">सभी नंबरों को आसानी से VCF फॉर्मेट में बदलें</p>
+        </div>
+
+        <div class="glass-card p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Left Side: Inputs -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">नंबर यहाँ पेस्ट करें (Any Format)</label>
+                        <textarea id="rawNumbers" class="input-style w-full h-48 resize-none" placeholder="जैसे: 919876543210, +91 999-888-7777, 91234,56789..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">संपर्क नाम</label>
+                            <input type="text" id="contactName" class="input-style w-full" placeholder="रमेश" value="Contact">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">कंट्री कोड फिल्टर</label>
+                            <input type="text" id="countryFilter" class="input-style w-full" placeholder="+91">
+                        </div>
+                    </div>
+
+                    <button onclick="processData()" class="btn-premium w-full py-4 text-white flex items-center justify-center gap-2">
+                        <i class="fas fa-sync-alt"></i> नंबर फिल्टर और प्रोसेस करें
+                    </button>
+                </div>
+
+                <!-- Right Side: Stats & Preview -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stat-card">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider">टोटल नंबर</span>
+                            <span id="totalCount" class="text-2xl font-bold text-blue-400">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider">फिल्टर नंबर</span>
+                            <span id="filteredCount" class="text-2xl font-bold text-green-400">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider">देश (फिल्टर)</span>
+                            <span id="countryLabel" class="text-sm font-bold text-indigo-400">-</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider">हटाए गए</span>
+                            <span id="removedCount" class="text-2xl font-bold text-red-400">0</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 rounded-xl p-4 h-40 overflow-y-auto border border-white/5">
+                        <h3 class="text-xs font-bold text-gray-500 mb-2 uppercase">प्रीव्यू लिस्ट:</h3>
+                        <div id="previewList" class="text-sm text-gray-300 space-y-1">
+                            सूची खाली है...
+                        </div>
+                    </div>
+
+                    <button onclick="downloadVCF()" id="downloadBtn" class="btn-premium w-full py-4 text-white hidden download-btn items-center justify-center gap-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-download"></i> VCard (.vcf) डाउनलोड करें
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 text-center text-gray-500 text-sm">
+            <p class="font-medium">Premium Experience Design</p>
+            <p class="mt-1">creat by <span class="text-blue-400">Dineshsankhla804@gmail.com</span></p>
+        </div>
+    </div>
+
+    <script>
+        let processedNumbers = [];
+
+        function processData() {
+            const rawText = document.getElementById('rawNumbers').value;
+            const filterCode = document.getElementById('countryFilter').value.trim();
+            const contactBaseName = document.getElementById('contactName').value.trim() || "Contact";
+
+            // Regex to extract sequences of digits (minimum 7 to avoid short noise)
+            // It allows for leading + and handles messy separators
+            const extracted = rawText.match(/\+?\d[\d\s\-\(\),]{6,}\d/g) || [];
+            
+            // Cleaning each match
+            let allNumbers = extracted.map(num => {
+                // Remove all non-digit and non-plus characters
+                return num.replace(/[^\d+]/g, '');
+            }).filter(num => num.length >= 8); // Basic validation for length
+
+            // Removing duplicates
+            allNumbers = [...new Set(allNumbers)];
+
+            let filtered = [];
+            if (filterCode) {
+                filtered = allNumbers.filter(num => num.startsWith(filterCode) || num.startsWith(filterCode.replace('+', '')));
+            } else {
+                filtered = allNumbers;
+            }
+
+            processedNumbers = filtered;
+
+            // Update UI Stats
+            document.getElementById('totalCount').innerText = allNumbers.length;
+            document.getElementById('filteredCount').innerText = filtered.length;
+            document.getElementById('removedCount').innerText = allNumbers.length - filtered.length;
+            document.getElementById('countryLabel').innerText = filterCode || "सभी";
+
+            // Update Preview
+            const previewContainer = document.getElementById('previewList');
+            if (filtered.length > 0) {
+                previewContainer.innerHTML = filtered.slice(0, 50).map((num, idx) => {
+                    const numIdx = (idx + 1).toString().padStart(2, '0');
+                    return `<div><span class="text-gray-500">${numIdx}.</span> ${contactBaseName} ${numIdx} - <span class="text-blue-400">${num}</span></div>`;
+                }).join('');
+                if (filtered.length > 50) previewContainer.innerHTML += `<div class="text-center py-2 text-gray-500 italic">...और ${filtered.length - 50} अन्य</div>`;
+                
+                document.getElementById('downloadBtn').classList.remove('hidden');
+                document.getElementById('downloadBtn').classList.add('flex');
+            } else {
+                previewContainer.innerHTML = "कोई नंबर नहीं मिला।";
+                document.getElementById('downloadBtn').classList.add('hidden');
+            }
+        }
+
+        function downloadVCF() {
+            if (processedNumbers.length === 0) return;
+
+            const baseName = document.getElementById('contactName').value.trim() || "Contact";
+            let vcfContent = "";
+
+            processedNumbers.forEach((num, index) => {
+                const formattedIdx = (index + 1).toString().padStart(2, '0');
+                const fullName = `${baseName} ${formattedIdx}`;
+                
+                vcfContent += "BEGIN:VCARD\n";
+                vcfContent += "VERSION:3.0\n";
+                vcfContent += `FN:${fullName}\n`;
+                vcfContent += `TEL;TYPE=CELL:${num}\n`;
+                vcfContent += "END:VCARD\n";
+            });
+
+            const blob = new Blob([vcfContent], { type: "text/vcard" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${baseName}_Contacts.vcf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
